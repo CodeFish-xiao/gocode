@@ -11,7 +11,7 @@ import (
 )
 
 var redisdb *redis.Client
-var wg sync.WaitGroup
+var wg sync.WaitGroup //等待队列
 
 func main() {
 	wg.Add(1)
@@ -34,16 +34,16 @@ func testRedisBase() {
 	log.Println(pong, err) // Output: PONG <nil>
 
 	ExampleClient_String()
-	//ExampleClient_List()
-	//ExampleClient_Hash()
-	//ExampleClient_Set()
-	//ExampleClient_SortSet()
-	//ExampleClient_HyperLogLog()
-	//ExampleClient_CMD()
-	//ExampleClient_Scan()
-	//ExampleClient_Tx()
-	//ExampleClient_Script()
-	//ExampleClient_PubSub()
+	ExampleClient_List()
+	ExampleClient_Hash()
+	ExampleClient_Set()
+	ExampleClient_SortSet()
+	ExampleClient_HyperLogLog()
+	ExampleClient_CMD()
+	ExampleClient_Scan()
+	ExampleClient_Tx()
+	ExampleClient_Script()
+	ExampleClient_PubSub()
 }
 
 func ExampleClient_String() {
