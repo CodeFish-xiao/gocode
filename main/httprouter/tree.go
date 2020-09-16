@@ -26,8 +26,8 @@ func longestCommonPrefix(a, b string) int {
 	return i
 }
 
-// Search for a wildcard segment and check the name for invalid characters.
-// Returns -1 as index, if no wildcard was found.
+//搜索通配符段，并检查名称中是否有无效字符。
+// 如果没有找到通配符，返回-1作为索引。
 func findWildcard(path string) (wilcard string, i int, valid bool) {
 	// Find start
 	for start, c := range []byte(path) {
