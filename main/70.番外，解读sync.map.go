@@ -81,24 +81,22 @@ func newEntry(i interface{}) *entry {
 	return &entry{p: unsafe.Pointer(&i)}
 }
 
-// Load returns the value stored in the map for a key, or nil if no
-// value is present.
-// The ok result indicates whether value was found in the map.
+// Load返回存储在映射中的键值，如果没有值，则返回nil。
+//确定结果表明是否在地图中找到了值。
+// The ok 结果表明是否在映射中找到了值。
 func (m *Map) Load(key interface{}) (value interface{}, ok bool) {
 	read, _ := m.read.Load().(readOnly)
 	e, ok := read.m[key]
 	if !ok && read.amended {
 		m.mu.Lock()
-		// Avoid reporting a spurious miss if m.dirty got promoted while we were
-		// blocked on m.mu. (If further loads of the same key will not miss, it's
-		// not worth copying the dirty map for this key.)
+		// 如果在我们被m.mu封锁时提升了m.dirty，请避免报告虚假的遗漏。
+		//(如果相同的密钥的进一步负荷不会错过, 则不值得复制该密钥的脏映射。.)
 		read, _ = m.read.Load().(readOnly)
 		e, ok = read.m[key]
 		if !ok && read.amended {
 			e, ok = m.dirty[key]
-			// Regardless of whether the entry was present, record a miss: this key
-			// will take the slow path until the dirty map is promoted to the read
-			// map.
+			// 不管entry是否存在，都要记录miss:
+			// 该键将采用慢速路径，直到将脏映射提升为已读映射为止。
 			m.missLocked()
 		}
 		m.mu.Unlock()
