@@ -115,7 +115,7 @@ func (e *entry) load() (value interface{}, ok bool) {
 	return *(*interface{})(p), true
 }
 
-// Store sets the value for a key.
+// Store 设置键的值。
 func (m *Map) Store(key, value interface{}) {
 	read, _ := m.read.Load().(readOnly)
 	if e, ok := read.m[key]; ok && e.tryStore(&value) {
@@ -126,8 +126,7 @@ func (m *Map) Store(key, value interface{}) {
 	read, _ = m.read.Load().(readOnly)
 	if e, ok := read.m[key]; ok {
 		if e.unexpungeLocked() {
-			// The entry was previously expunged, which implies that there is a
-			// non-nil dirty map and this entry is not in it.
+			// 该条目先前已删除，这意味着存在一个非零的脏映射，并且该条目不在其中。
 			m.dirty[key] = e
 		}
 		e.storeLocked(&value)
@@ -135,8 +134,9 @@ func (m *Map) Store(key, value interface{}) {
 		e.storeLocked(&value)
 	} else {
 		if !read.amended {
-			// We're adding the first new key to the dirty map.
+			// 我们正在向脏映射添加第一个新key。
 			// Make sure it is allocated and mark the read-only map as incomplete.
+			//确保已分配它，并将只读映射标记为不完整。
 			m.dirtyLocked()
 			m.read.Store(readOnly{m: read.m, amended: true})
 		}
@@ -145,10 +145,9 @@ func (m *Map) Store(key, value interface{}) {
 	m.mu.Unlock()
 }
 
-// tryStore stores a value if the entry has not been expunged.
+// tryStore 如果entry未删除，则存储一个值。
 //
-// If the entry is expunged, tryStore returns false and leaves the entry
-// unchanged.
+// 如果删除该条目，则tryStore返回false并使该条目保持不变。
 func (e *entry) tryStore(i *interface{}) bool {
 	for {
 		p := atomic.LoadPointer(&e.p)
@@ -161,26 +160,25 @@ func (e *entry) tryStore(i *interface{}) bool {
 	}
 }
 
-// unexpungeLocked ensures that the entry is not marked as expunged.
+// unexpungeLocked 确保该条目未标记为清除。
 //
-// If the entry was previously expunged, it must be added to the dirty map
-// before m.mu is unlocked.
+// 如果该条目先前已删除，则必须在解锁m.mu之前将其添加到脏映射中。
 func (e *entry) unexpungeLocked() (wasExpunged bool) {
 	return atomic.CompareAndSwapPointer(&e.p, expunged, nil)
 }
 
-// storeLocked unconditionally stores a value to the entry.
+// storeLocked 无条件地将值存储到条目。
 //
-// The entry must be known not to be expunged.
+// 必须知道该条目不会被清除。
 func (e *entry) storeLocked(i *interface{}) {
 	atomic.StorePointer(&e.p, unsafe.Pointer(i))
 }
 
-// LoadOrStore returns the existing value for the key if present.
-// Otherwise, it stores and returns the given value.
-// The loaded result is true if the value was loaded, false if stored.
+// LoadOrStore 返回键的现有值（如果存在）。
+// 否则，它将存储并返回给定的值。
+// 如果已加载该值，则加载的结果为true；如果已存储，则为false。
 func (m *Map) LoadOrStore(key, value interface{}) (actual interface{}, loaded bool) {
-	// Avoid locking if it's a clean hit.
+	// 避免锁定，如果它是一个干净的命中。
 	read, _ := m.read.Load().(readOnly)
 	if e, ok := read.m[key]; ok {
 		actual, loaded, ok := e.tryLoadOrStore(value)
@@ -201,8 +199,9 @@ func (m *Map) LoadOrStore(key, value interface{}) (actual interface{}, loaded bo
 		m.missLocked()
 	} else {
 		if !read.amended {
-			// We're adding the first new key to the dirty map.
+			// 我们正在向脏映射添加第一个新key。
 			// Make sure it is allocated and mark the read-only map as incomplete.
+			//确保已分配它，并将只读映射标记为不完整。
 			m.dirtyLocked()
 			m.read.Store(readOnly{m: read.m, amended: true})
 		}
