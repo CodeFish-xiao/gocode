@@ -1,8 +1,8 @@
 package main
 
 import (
-"fmt"
-"sync"
+	"fmt"
+	"sync"
 )
 
 type Fetcher interface {
@@ -15,15 +15,16 @@ type urlRecord struct {
 	mux sync.Mutex
 	wg  sync.WaitGroup
 }
-var m = urlRecord{v: make(map[string]int)}
+
+var m34 = urlRecord{v: make(map[string]int)}
+
 // Crawl 使用 fetcher 从某个 URL 开始递归的爬取页面，直到达到最大深度。
 func Crawl(url string, depth int, fetcher Fetcher) {
 	// TODO: 并行的抓取 URL。
 
 	// TODO: 不重复抓取页面。
 
-	defer m.wg.Done()
-
+	defer m34.wg.Done()
 
 	// 下面并没有实现上面两种情况：
 	if depth <= 0 {
@@ -31,10 +32,9 @@ func Crawl(url string, depth int, fetcher Fetcher) {
 	}
 	//
 
-
-	m.mux.Lock()
-	m.v[url]++
-	m.mux.Unlock()
+	m34.mux.Lock()
+	m34.v[url]++
+	m34.mux.Unlock()
 
 	//
 	body, urls, err := fetcher.Fetch(url)
@@ -44,12 +44,12 @@ func Crawl(url string, depth int, fetcher Fetcher) {
 	}
 	fmt.Printf("found: %s %q\n", url, body)
 	for _, u := range urls {
-		m.mux.Lock()
-		if _, ok := m.v[u]; !ok {
-			m.wg.Add(1)
+		m34.mux.Lock()
+		if _, ok := m34.v[u]; !ok {
+			m34.wg.Add(1)
 			go Crawl(u, depth-1, fetcher)
 		}
-		m.mux.Unlock()
+		m34.mux.Unlock()
 	}
 	return
 
@@ -57,11 +57,11 @@ func Crawl(url string, depth int, fetcher Fetcher) {
 
 func main() {
 
-	m.wg.Add(1)
+	m34.wg.Add(1)
 
 	Crawl("https://golang.org/", 4, fetcher)
 
-	m.wg.Wait()
+	m34.wg.Wait()
 }
 
 // fakeFetcher 是返回若干结果的 Fetcher。
@@ -112,4 +112,3 @@ var fetcher = fakeFetcher{
 		},
 	},
 }
-
