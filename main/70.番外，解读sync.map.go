@@ -213,11 +213,9 @@ func (m *Map) LoadOrStore(key, value interface{}) (actual interface{}, loaded bo
 	return actual, loaded
 }
 
-// tryLoadOrStore atomically loads or stores a value if the entry is not
-// expunged.
+// tryLoadOrStore 如果条目没有删除，则自动加载或存储一个值。
 //
-// If the entry is expunged, tryLoadOrStore leaves the entry unchanged and
-// returns with ok==false.
+// 如果该条目被删除，tryLoadOrStore将使该条目保持不变，并以ok == false返回。
 func (e *entry) tryLoadOrStore(i interface{}) (actual interface{}, loaded, ok bool) {
 	p := atomic.LoadPointer(&e.p)
 	if p == expunged {
@@ -227,9 +225,7 @@ func (e *entry) tryLoadOrStore(i interface{}) (actual interface{}, loaded, ok bo
 		return *(*interface{})(p), true, true
 	}
 
-	// Copy the interface after the first load to make this method more amenable
-	// to escape analysis: if we hit the "load" path or the entry is expunged, we
-	// shouldn't bother heap-allocating.
+	//在第一次加载后复制接口，以使此方法更适合进行分析：如果我们单击“加载”路径或删除了条目，则不应理会堆分配。
 	ic := i
 	for {
 		if atomic.CompareAndSwapPointer(&e.p, nil, unsafe.Pointer(&ic)) {
@@ -245,8 +241,8 @@ func (e *entry) tryLoadOrStore(i interface{}) (actual interface{}, loaded, ok bo
 	}
 }
 
-// LoadAndDelete deletes the value for a key, returning the previous value if any.
-// The loaded result reports whether the key was present.
+// LoadAndDelete 删除键的值，如果有则返回前一个值。
+// 加载的结果报告密钥是否存在。
 func (m *Map) LoadAndDelete(key interface{}) (value interface{}, loaded bool) {
 	read, _ := m.read.Load().(readOnly)
 	e, ok := read.m[key]
@@ -257,9 +253,7 @@ func (m *Map) LoadAndDelete(key interface{}) (value interface{}, loaded bool) {
 		if !ok && read.amended {
 			e, ok = m.dirty[key]
 			delete(m.dirty, key)
-			// Regardless of whether the entry was present, record a miss: this key
-			// will take the slow path until the dirty map is promoted to the read
-			// map.
+			//无论是否存在该条目，都记录一个未命中：该键将采用慢速路径，直到将脏映射提升为已读映射为止。
 			m.missLocked()
 		}
 		m.mu.Unlock()
@@ -270,7 +264,7 @@ func (m *Map) LoadAndDelete(key interface{}) (value interface{}, loaded bool) {
 	return nil, false
 }
 
-// Delete deletes the value for a key.
+// Delete 删除键的值。
 func (m *Map) Delete(key interface{}) {
 	m.LoadAndDelete(key)
 }
@@ -287,27 +281,19 @@ func (e *entry) delete() (value interface{}, ok bool) {
 	}
 }
 
-// Range calls f sequentially for each key and value present in the map.
-// If f returns false, range stops the iteration.
+// Range 对映射中存在的每个键和值依次调用f。 如果f返回false，则range停止迭代。
 //
-// Range does not necessarily correspond to any consistent snapshot of the Map's
-// contents: no key will be visited more than once, but if the value for any key
-// is stored or deleted concurrently, Range may reflect any mapping for that key
-// from any point during the Range call.
-//
-// Range may be O(N) with the number of elements in the map even if f returns
-// false after a constant number of calls.
+//Range不一定与Map内容的任何一致快照相对应：
+//不会多次访问任何键，但是如果同时存储或删除任何键的值，则Range可能会在Range调用期间从任何点反映该键的任何映射。
+// Range 可能是O（N），且映射中的元素数即使在恒定数量的调用后f返回false也是如此。
 func (m *Map) Range(f func(key, value interface{}) bool) {
-	// We need to be able to iterate over all of the keys that were already
-	// present at the start of the call to Range.
-	// If read.amended is false, then read.m satisfies that property without
-	// requiring us to hold m.mu for a long time.
+	// 我们需要能够遍历对Range的调用开始时已经存在的所有键。
+	// 如果read.amended为false，则read.m满足该属性，而无需我们长时间持有m.mu。
 	read, _ := m.read.Load().(readOnly)
 	if read.amended {
-		// m.dirty contains keys not in read.m. Fortunately, Range is already O(N)
-		// (assuming the caller does not break out early), so a call to Range
-		// amortizes an entire copy of the map: we can promote the dirty copy
-		// immediately!
+		// m.dirty包含不在read.m中的键。
+		//幸运的是，Range已经是O（N）（假设调用者没有提前中断），
+		//因此对Range的调用将摊销映射的整个副本：我们可以立即升级脏副本！
 		m.mu.Lock()
 		read, _ = m.read.Load().(readOnly)
 		if read.amended {
