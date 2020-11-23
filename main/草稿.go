@@ -15,11 +15,12 @@ type b struct {
 }
 
 func main() {
-	loc, _ := time.LoadLocation("Local")
-	fmt.Println(time.Date(2099, 12, 12, 12, 12, 12, 0, loc).Unix())
-	Str2Stamp := Str2Stamp("2099-12-12 12:12:12")
-	fmt.Println(Str2Stamp)
-
+	for i := 0; i <= 10; i++ {
+		go func() {
+			fmt.Println(i)
+		}()
+	}
+	time.Sleep(1)
 }
 func Str2Stamp(formatTimeStr string) int64 {
 	timeStruct := Str2Time(formatTimeStr)
