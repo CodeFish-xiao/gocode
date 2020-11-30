@@ -32,8 +32,9 @@ func Str2Stamp(formatTimeStr string) int64 {
 func Str2Time(formatTimeStr string) time.Time {
 	timeLayout := "2006-01-02 15:04:05"
 	loc, _ := time.LoadLocation("Local")
+	var th int32
 	theTime, _ := time.ParseInLocation(timeLayout, formatTimeStr, loc) //使用模板在对应时区转化为time.time类型
-
+	th, _ = time.ParseInLocation(timeLayout, formatTimeStr, loc)       //使用模板在对应时区转化为time.time类型
 	return theTime
 
 }
