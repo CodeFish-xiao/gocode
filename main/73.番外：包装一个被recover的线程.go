@@ -11,11 +11,10 @@ func Go(x func()) {
 	wg.Add(1)
 	go func() {
 		defer func() {
-			wg.Done()
 			if e := recover(); e != nil {
 				log.Printf("%v\n", e)
-				wg.Done()
 			}
+			wg.Done()
 		}()
 		x()
 	}()
