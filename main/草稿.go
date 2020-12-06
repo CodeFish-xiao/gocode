@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	_ "strings"
-	"time"
 )
 
 type a struct {
@@ -15,26 +15,6 @@ type b struct {
 }
 
 func main() {
-	for i := 0; i <= 10; i++ {
-		go func() {
-			fmt.Println(i)
-		}()
-	}
-	time.Sleep(1)
-}
-func Str2Stamp(formatTimeStr string) int64 {
-	timeStruct := Str2Time(formatTimeStr)
-	millisecond := timeStruct.UnixNano() / 1e6
-	return millisecond
-}
-
-/**字符串->时间对象*/
-func Str2Time(formatTimeStr string) time.Time {
-	timeLayout := "2006-01-02 15:04:05"
-	loc, _ := time.LoadLocation("Local")
-	var th int32
-	theTime, _ := time.ParseInLocation(timeLayout, formatTimeStr, loc) //使用模板在对应时区转化为time.time类型
-	th, _ = time.ParseInLocation(timeLayout, formatTimeStr, loc)       //使用模板在对应时区转化为time.time类型
-	return theTime
-
+	var i = int64(123123123123325745)
+	fmt.Println(strconv.FormatInt(i, 10))
 }

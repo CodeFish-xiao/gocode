@@ -49,7 +49,6 @@ func testRedisBase() {
 func ExampleClient_String() {
 	log.Println("ExampleClient_String")
 	defer log.Println("ExampleClient_String")
-
 	//kv读写
 	err := redisdb.Set("key", "value", 1*time.Second).Err()
 	log.Println(err)
@@ -67,7 +66,6 @@ func ExampleClient_String() {
 	} else if err != nil {
 		log.Println("missing_key", val2, err)
 	}
-
 	//不存在才设置 过期时间 nx ex
 	value, err := redisdb.SetNX("counter", 0, 1*time.Second).Result()
 	log.Println("setnx", value, err)
